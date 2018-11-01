@@ -5,12 +5,12 @@ export PATH
 #=================================================
 #	System Required: CentOS/Debian/Ubuntu
 #	Description: GoFlyway
-#	Version: 1.0.10
+#	Version: 1.0.11
 #	Author: Toyo
 #	Blog: https://doub.io/goflyway-jc2/
 #=================================================
 
-sh_ver="1.0.10"
+sh_ver="1.0.11"
 filepath=$(cd "$(dirname "$0")"; pwd)
 file_1=$(echo -e "${filepath}"|awk -F "$0" '{print $1}')
 Folder="/usr/local/goflyway"
@@ -69,7 +69,7 @@ check_pid(){
 	PID=$(ps -ef| grep "goflyway"| grep -v grep| grep -v "goflyway.sh"| grep -v "init.d"| grep -v "service"| awk '{print $2}')
 }
 check_new_ver(){
-	new_ver=$(wget --no-check-certificate -qO- -t1 -T3 https://api.github.com/repos/coyove/goflyway/releases| grep "tag_name"| head -n 1| awk -F ":" '{print $2}'| sed 's/\"//g;s/,//g;s/ //g')
+	new_ver=$(wget --no-check-certificate -qO- -t1 -T3 https://api.github.com/repos/coyove/goflyway/releases| grep "tag_name"|grep -v "caddy"| head -n 1| awk -F ":" '{print $2}'| sed 's/\"//g;s/,//g;s/ //g')
 	if [[ -z ${new_ver} ]]; then
 		echo -e "${Error} GoFlyway 最新版本获取失败，请手动获取最新版本号[ https://github.com/coyove/goflyway/releases ]"
 		read -e -p "请输入版本号 [ 格式如 1.3.0a ] :" new_ver
@@ -163,8 +163,8 @@ Set_port(){
 	while true
 		do
 		echo -e "请输入 GoFlyway 监听端口 [1-65535]（如果要伪装或者套CDN，那么只能使用端口：80 8080 8880 2052 2082 2086 2095）"
-		read -e -p "(默认: 2333):" new_port
-		[[ -z "${new_port}" ]] && new_port="2333"
+		read -e -p "(默认: 8880):" new_port
+		[[ -z "${new_port}" ]] && new_port="8880"
 		echo $((${new_port}+0)) &>/dev/null
 		if [[ $? -eq 0 ]]; then
 			if [[ ${new_port} -ge 1 ]] && [[ ${new_port} -le 65535 ]]; then
@@ -364,6 +364,7 @@ Uninstall_goflyway(){
 		[[ ! -z $PID ]] && kill -9 ${PID}
 		Read_config
 		Del_iptables
+		Save_iptables
 		rm -rf ${Folder}
 		if [[ ${release} = "centos" ]]; then
 			chkconfig --del goflyway

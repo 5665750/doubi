@@ -5,12 +5,12 @@ export PATH
 #=================================================
 #	System Required: CentOS/Debian/Ubuntu
 #	Description: DAZE
-#	Version: 1.0.0
+#	Version: 1.0.1
 #	Author: Toyo
 #	Blog: https://doub.io/daze-jc3/
 #=================================================
 
-sh_ver="1.0.0"
+sh_ver="1.0.1"
 filepath=$(cd "$(dirname "$0")"; pwd)
 file_1=$(echo -e "${filepath}"|awk -F "$0" '{print $1}')
 Folder="/usr/local/daze"
@@ -109,23 +109,23 @@ Download(){
 		bit="arm"
 	fi
 	wget --no-check-certificate -N "https://github.com/mohanson/daze/releases/download/${new_ver}/daze_linux_${bit}"
-	[[ ! -e "daze_linux_${bit}" ]] && echo -e "${Error} DAZE 下载失败 !" && rm -f "${Folder}" && exit 1
+	[[ ! -e "daze_linux_${bit}" ]] && echo -e "${Error} DAZE 下载失败 !" && rm -rf "${Folder}" && exit 1
 	mv "daze_linux_${bit}" "daze"
-	[[ ! -e "daze" ]] && echo -e "${Error} DAZE 重命名失败 !" && rm -f "${Folder}" && exit 1
+	[[ ! -e "daze" ]] && echo -e "${Error} DAZE 重命名失败 !" && rm -rf "${Folder}" && exit 1
 	chmod +x daze
 	echo "${new_ver}" > ${Now_ver_File}
 }
 Service(){
 	if [[ ${release} = "centos" ]]; then
 		if ! wget --no-check-certificate https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/service/daze_centos -O /etc/init.d/daze; then
-			echo -e "${Error} DAZE 服务管理脚本下载失败 !" && exit 1
+			echo -e "${Error} DAZE 服务管理脚本下载失败 !" && rm -rf "${Folder}" && exit 1
 		fi
 		chmod +x /etc/init.d/daze
 		chkconfig --add daze
 		chkconfig daze on
 	else
 		if ! wget --no-check-certificate https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/service/daze_debian -O /etc/init.d/daze; then
-			echo -e "${Error} DAZE 服务管理脚本下载失败 !" && exit 1
+			echo -e "${Error} DAZE 服务管理脚本下载失败 !" && rm -rf "${Folder}" && exit 1
 		fi
 		chmod +x /etc/init.d/daze
 		update-rc.d -f daze defaults
@@ -157,8 +157,8 @@ Set_port(){
 	while true
 		do
 		echo -e "请输入 DAZE 监听端口 [1-65535]（如果要混淆伪装，建议使用：80 8080 8880）"
-		read -e -p "(默认: 8080):" new_port
-		[[ -z "${new_port}" ]] && new_port="8080"
+		read -e -p "(默认: 8880):" new_port
+		[[ -z "${new_port}" ]] && new_port="8880"
 		echo $((${new_port}+0)) &>/dev/null
 		if [[ $? -eq 0 ]]; then
 			if [[ ${new_port} -ge 1 ]] && [[ ${new_port} -le 65535 ]]; then
@@ -394,6 +394,7 @@ Uninstall(){
 		[[ ! -z $PID ]] && kill -9 ${PID}
 		Read_config
 		Del_iptables
+		Save_iptables
 		rm -rf ${Folder}
 		if [[ ${release} = "centos" ]]; then
 			chkconfig --del daze
@@ -420,7 +421,7 @@ View_daze(){
 		fi
 	fi
 	[[ -z ${obfs_url} ]] && obfs_url="无"
-	#link_qr
+	link_qr
 	clear && echo "————————————————" && echo
 	echo -e " DAZE 账号信息 :" && echo
 	echo -e " 地址\t: ${Green_font_prefix}${ip}${Font_color_suffix}"
@@ -429,8 +430,8 @@ View_daze(){
 	echo -e " 加密\t: ${Green_font_prefix}${method}${Font_color_suffix}"
 	echo -e " 伪装\t: ${Green_font_prefix}${obfs_url}${Font_color_suffix}"
 	echo -e " DNS \t: ${Green_font_prefix}${dns}${Font_color_suffix}"
-	#echo -e "${link}"
-	#echo -e "${Tip} 链接仅适用于Windows系统的 DAZE Tools 客户端（https://doub.io/dbrj-17/）。"
+	echo -e "${link}"
+	echo -e "${Tip} 链接仅适用于Windows系统的 DAZE Tools 客户端（https://doub.io/dbrj-17/）。"
 	echo && echo "————————————————"
 }
 urlsafe_base64(){
